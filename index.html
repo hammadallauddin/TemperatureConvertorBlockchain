@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+    <head>
+        <title>
+            Temperature Convertor
+        </title>
+        <link href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css' rel='stylesheet' />
+        <script src="web3.js/dist/web3.min.js"></script>
+
+        <script>
+            var contract_address = "0x4144f003E3Cf83E9Bd672f7693a479963F6dBCd4";
+            var contract_abi = [ { "constant": true, "inputs": [], "name": "getFahrenheit", "outputs": [ { "name": "", "type": "int256", "value": "33" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [ { "name": "number", "type": "int256" } ], "name": "toFahrenheit", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [ { "name": "number", "type": "int256" } ], "name": "toCentigrade", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "getCentigrade", "outputs": [ { "name": "", "type": "int256", "value": "-11" } ], "payable": false, "stateMutability": "view", "type": "function" } ];
+
+            web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+
+            contract_instance = web3.eth.contract(contract_abi).at(contract_address);
+
+
+
+            function getC() {
+                document.getElementById("centigrade").innerText = contract_instance.getCentigrade() + " C";
+            }
+
+
+            function getF() {
+                document.getElementById("fahrenheit").innerText = contract_instance.getFahrenheit() + " F";
+            }
+
+            function toF() {
+                web3.personal.unlockAccount(web3.eth.accounts[0],'hammad123');
+                var data = parseInt(document.getElementById("fahInp").value);
+                contract_instance.toFahrenheit(data,{from: web3.eth.accounts[0], gas: 200000}, function (error, response) {
+                    if(error){
+                        console.log(error);
+                    }else{
+                        var hash = response;
+                        callWhenMined(hash,getF);
+                    }
+                });
+            }
+
+            function toC() {
+                web3.personal.unlockAccount(web3.eth.accounts[0],'hammad123');
+                var data = parseInt(document.getElementById("centInp").value);
+                contract_instance.toCentigrade(data,{from: web3.eth.accounts[0], gas: 200000}, function (error, response) {
+                    if(error){
+                        console.log(error);
+                    }else{
+                        var hash = response;
+                        callWhenMined(hash,getC);
+                    }
+                });
+            }
+
+            function callWhenMined(txHash, callback) {
+                web3.eth.getTransactionReceipt(txHash, function (error, rcpt) {
+                    if(error) {
+                        console.log(error);
+                    }else {
+                        if(rcpt==null){
+                            setTimeout(function () {
+                                callWhenMined(txHash,callback);
+                            },5000);
+                        }else{
+                            callback();
+                        }
+                    }
+                });
+            }
+
+        </script>
+
+    </head>
+    <body>
+    <div class="navbar navbar-inverse">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand">Temperature Convertor</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h1>Centigrade to Fahrenheit</h1><br>
+                        <div class="col-lg-9">
+                            <input type="text" class="form-control" placeholder="Enter Temperature in Centigrade" id="centInp" name="centInp">
+                        </div>
+                        <br><br><br><br>
+                        <button class="btn btn-success col-lg-7 col-sm-offset-1" onclick="toF()">Convert</button>
+                        <br><br><br><br>
+                        <button class="btn btn-warning col-lg-7 col-sm-offset-1" onclick="getF()">Get Temperature</button>
+                        <br><br><br><br>
+                        <h2 class="col-md-offset-3" id="fahrenheit" ></h2>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <h1>Fahrenheit to Centigrade</h1><br>
+                        <div class="col-lg-9">
+                            <input type="text" class="form-control" placeholder="Enter Temperature in Fahrenheit" id="fahInp" name="fahInp">
+                        </div>
+                        <br><br><br><br>
+                        <button class="btn btn-success col-lg-7 col-sm-offset-1" onclick="toC()">Convert</button>
+                        <br><br><br><br>
+                        <button class="btn btn-warning col-lg-7 col-sm-offset-1" onclick="getC()">Get Temperature</button>
+                        <br><br><br><br>
+                        <h2 class="col-md-offset-3" id="centigrade"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </body>
+</html>
